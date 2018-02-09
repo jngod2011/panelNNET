@@ -1,11 +1,40 @@
 panelNNET.est <-
-function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
+function(y, X, hidden_units, fe_var, biasVars
+         , maxit, lam, time_var, param, parapen, parlist
          , verbose, report_interval, gravity, convtol, RMSprop
          , start.LR, activation
          , batchsize, maxstopcounter, OLStrick
          , initialization, dropout_hidden
          , dropout_input, convolutional, LR_slowing_rate, ...){
 
+# y = dat$yield
+# X = Xn
+# hidden_units = c(10, 5)
+# fe_var = dat$fips
+# maxit = 10000
+# lam = .1
+# time_var = dat$year
+# param = Xp
+# verbose = T
+# report_interval = 1
+# gravity = 1.1
+# convtol = 1e-3
+# activation = 'lrelu'
+# start.LR = .0001
+# parlist = NULL
+# OLStrick = TRUE
+# batchsize = 256
+# maxstopcounter = 25
+# parapen = c(0,0)
+# biasVars = ivars
+# 
+# RMSprop = T
+# initialization = "HZRS"
+# dropout_hidden <- dropout_input <- 1
+# convolutional <- NULL
+# LR_slowing_rate <- 2
+  
+  
   ##########
   #Define internal functions
   getYhat <- function(pl, hlay = NULL){ 
@@ -63,8 +92,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       if (i == NL){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
       #add the bias
-      lay <- cbind(1, lay) #add bias to the hidden layer
-      if (i != NL){outer_param <- outer_param[-1,, drop = FALSE]}      #remove parameter on upper-layer bias term
+      lay <- cbind(CB(biasVars), lay) #add bias to the hidden layer
+      if (i != NL){outer_param <- outer_param[-(1:3),, drop = FALSE]}      #remove parameter on upper-layer bias term
       grad_stubs[[i]] <- activ_prime(MatMult(lay, plist[[i]])) * MatMult(grad_stubs[[i+1]], Matrix::t(outer_param))
     }
     # multiply the gradient stubs by their respective layers to get the actual gradients
@@ -74,7 +103,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     for (i in 1:length(grad_stubs)){
       if (i == 1){lay = as.matrix(CB(Xd))} else {lay= CB(hlay[[i-1]])}
       if (i != length(grad_stubs) | is.null(fe_var)){# don't add bias term to top layer when there are fixed effects present
-        lay <- cbind(1, lay) #add bias to the hidden layer
+        lay <- cbind(CB(biasVars), lay) #add bias to the hidden layer
       }
       grads[[i]] <- eigenMapMatMult(t(lay), as.matrix(grad_stubs[[i]]))
     }
@@ -149,10 +178,15 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   ###########################
   # start fitting
   ###########################
-  # do scaling
+  # do scaling, including bias vars
   X <- scale(X)
   if (!is.null(param)){
     param <- scale(param)
+  }
+  if (!is.null(biasVars)){
+    biasVars <- cbind(1, scale(biasVars))
+  } else {
+    biasVars <- matrix(rep(1, nrow(X)))
   }
   if (activation == 'tanh'){
     activ <- tanh
@@ -225,7 +259,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
           ubounds <- 2*sqrt(6)/sqrt(D+hidden_units[i]+2)#2 is for the bias.  Not sure why 2.  Would need to go back and read the paper.
         }
       }
-      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+1), -ubounds, ubounds), ncol = hidden_units[i])
+      parlist[[i]] <- matrix(runif((hidden_units[i])*(D+ncol(biasVars)), -ubounds, ubounds), ncol = hidden_units[i])
     }
     # vector of parameters at the top layer
     parlist$beta <- runif(hidden_units[i], -ubounds, ubounds)
@@ -249,7 +283,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   #compute hidden layers given parlist
   hlayers <- calc_hlayers(parlist, X = X, param = param, 
                           fe_var = fe_var, nlayers = nlayers, 
-                          convolutional = convolutional, activation = activation)
+                          convolutional = convolutional, activation = activation,
+                          biasVars = biasVars)
   #calculate ydm and put it in global...
   if (!is.null(fe_var)){
     ydm <<- demeanlist(y, list(fe_var)) 
@@ -363,7 +398,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
       parlist <- mapply('-', parlist, updates)
       # Update hidden layers
       hlayers <- calc_hlayers(parlist, X = X, param = param, fe_var = fe_var, 
-                              nlayers = nlayers, convolutional = convolutional, activ = activation)
+                              nlayers = nlayers, convolutional = convolutional, activ = activation,
+                              biasVars = biasVars)
       # OLS trick!
       if (OLStrick == TRUE){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
@@ -469,7 +505,8 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
   parlist <- parlist_best
   hlayers <- calc_hlayers(parlist, X = X, param = param,
                           fe_var = fe_var, nlayers = nlayers,
-                          convolutional = convolutional, activ = activation)
+                          convolutional = convolutional, activ = activation,
+                          biasVars = biasVars)
   # #If trained with dropput, weight the layers by expectations
   # if(dropout_hidden<1){
   #   for (i in nlayers:1){
@@ -519,9 +556,10 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
     ))
   fe_output <- data.frame(fe_var, fe)
   }
+  BVout <- if(ncol(biasVars) == 1){NULL} else {biasVars[,-1]}
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
-    , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
+    , X = X, y = y, param = param, fe_var = fe_var, biasVars = BVout, hidden_units = hidden_units, maxit = maxit
     , msevec = msevec, RMSprop = RMSprop, convtol = convtol
     , grads = grads, activation = activation, parapen = parapen
     , batchsize = batchsize, initialization = initialization, convolutional = convolutional

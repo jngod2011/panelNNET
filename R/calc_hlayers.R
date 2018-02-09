@@ -1,5 +1,5 @@
 
-calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation){
+calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers = nlayers, convolutional, activation, biasVars){
   if (activation == 'tanh'){
     activ <- tanh
   }
@@ -15,7 +15,7 @@ calc_hlayers <- function(parlist, X = X, param = param, fe_var = fe_var, nlayers
   hlayers <- vector('list', nlayers)
   for (i in 1:(nlayers + !is.null(convolutional))){
     if (i == 1){D <- X} else {D <- hlayers[[i-1]]}
-    D <- cbind(1, D) #add bias
+    D <- cbind(biasVars, D) #add bias, including vars to interact each layer
     # make sure that the time-invariant variables pass through the convolutional layer without being activated
     if (is.null(convolutional) | i > 1){
       hlayers[[i]] <- activ(MatMult(D, parlist[[i]]))        

@@ -1,5 +1,5 @@
 panelNNET.default <-
-function(y, X, hidden_units, fe_var
+function(y, X, hidden_units, fe_var, biasVars = NULL, 
   , maxit, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , report_interval = 100
@@ -11,7 +11,7 @@ function(y, X, hidden_units, fe_var
   , dropout_hidden = 1, dropout_input = 1
   , convolutional = NULL, LR_slowing_rate = 2, ...)
 {
-  out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
+  out <- panelNNET.est(y, X, hidden_units, fe_var, biasVars, maxit, lam
     , time_var, param, parapen, parlist, verbose
     , report_interval, gravity, convtol, RMSprop
     , start_LR, activation 

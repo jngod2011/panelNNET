@@ -88,7 +88,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
 }
 
 #prediction function, potentially for the Jacobian
-predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
+predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars
                     FEs_to_merge = NULL, return_toplayer = FALSE, convolutional = NULL){
   if (obj$activation == 'tanh'){
     activ <- tanh
@@ -113,6 +113,17 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
                STATS = attr(obj$param, "scaled:scale"), 
                FUN = '/')
   }
+  if (!is.null(obj$biasVars)){
+    B <- cbind(1, sweep(sweep(new.biasVars, 
+                     MARGIN = 2, 
+                     STATS = attr(obj$biasVars, "scaled:center"), 
+                     FUN = '-'), 
+                  MARGIN = 2, 
+                  STATS = attr(obj$biasVars, "scaled:scale"), 
+                  FUN = '/'))
+  } else {
+    B <- rep(1, nrow(D))
+  }
   # compute hidden layers
   HL <- calc_hlayers(parlist = obj$parlist, 
                     X = D, 
@@ -120,7 +131,8 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL,
                     fe_var = obj$fe_var, 
                     nlayers = length(obj$hidden_layers)-!is.null(obj$convolutional),# subtract off 1 when convolutional because "nlayers" doesn't include conv layer
                     convolutional = obj$convolutional,
-                    activation = obj$activation)
+                    activation = obj$activation,
+                    biasVars = B)
   D <- HL[[length(HL)]]
 
   if (return_toplayer == TRUE){
