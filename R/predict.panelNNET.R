@@ -3,7 +3,7 @@
 
 
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars = NULL, se.fit = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
 # obj = pnn
 # newX = Z[v,]
@@ -41,7 +41,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
     } else {FEs_to_merge <- NULL}
     #(predfun is defined below)
     yhat <- predfun(plist = plist, obj = obj, newX = newX, fe.newX = fe.newX
-      , new.param = new.param, FEs_to_merge = FEs_to_merge)
+      , new.param = new.param, new.biasVars = new.biasVars, FEs_to_merge = FEs_to_merge)
     if (se.fit == FALSE){
       return(yhat)
     } else {
@@ -65,7 +65,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
       }
       #predicted top-level variables
       X <- as.matrix(predfun(pvec, obj = obj, newX = newX, fe.newX = fe.newX
-          , new.param = new.param, FEs_to_merge = FEs_to_merge, return_toplayer = TRUE))
+          , new.param = new.param, new.biasVars, FEs_to_merge = FEs_to_merge, return_toplayer = TRUE))
       vcnames <- c()
       semat <- foreach(i = 1:length(obj$vcs), .combine = cbind, .errorhandling = 'remove') %do% {
         if (grepl('OLS', names(obj$vcs)[i])){
@@ -88,7 +88,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, se.fit = FALSE
 }
 
 #prediction function, potentially for the Jacobian
-predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars
+predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars,
                     FEs_to_merge = NULL, return_toplayer = FALSE, convolutional = NULL){
   if (obj$activation == 'tanh'){
     activ <- tanh
