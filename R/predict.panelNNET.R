@@ -5,11 +5,11 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars = NULL, se.fit = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
-obj = pnn
-newX = Xn[te,]
-new.param = Xp[te,]
-fe.newX = dat$fips[te]
-se.fit = F
+# obj = pnn
+# newX = Xn[te,]
+# new.param = Xp[te,]
+# fe.newX = dat$fips[te]
+# se.fit = F
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
