@@ -7,33 +7,33 @@ function(y, X, hidden_units, fe_var, biasVars
          , initialization, dropout_hidden
          , dropout_input, convolutional, LR_slowing_rate, ...){
 
-# y = dat$yield
-# X = Xn
-# hidden_units = c(10, 5)
-# fe_var = dat$fips
-# maxit = 10000
-# lam = .1
-# time_var = dat$year
-# param = Xp
-# verbose = T
-# report_interval = 1
-# gravity = 1.1
-# convtol = 1e-3
-# activation = 'lrelu'
-# start.LR = .0001
-# parlist = NULL
-# OLStrick = TRUE
-# batchsize = 256
-# maxstopcounter = 25
-# parapen = c(0,0)
-# biasVars = ivars
-# 
-# RMSprop = T
-# initialization = "HZRS"
-# dropout_hidden <- dropout_input <- 1
-# convolutional <- NULL
-# LR_slowing_rate <- 2
-  
+y = dat$yield
+X = Xn
+hidden_units = c(10, 5)
+fe_var = dat$fips
+maxit = 10000
+lam = .1
+time_var = dat$year
+param = Xp
+verbose = T
+report_interval = 1
+gravity = 1.1
+convtol = 1e-3
+activation = 'lrelu'
+start.LR = .0001
+parlist = NULL
+OLStrick = TRUE
+batchsize = 256
+maxstopcounter = 25
+parapen = c(0,0)
+biasVars = NULL
+
+RMSprop = T
+initialization = "HZRS"
+dropout_hidden <- dropout_input <- 1
+convolutional <- NULL
+LR_slowing_rate <- 2
+
   
   ##########
   #Define internal functions
@@ -93,7 +93,7 @@ function(y, X, hidden_units, fe_var, biasVars
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
       #add the bias
       lay <- cbind(CB(biasVars), lay) #add bias to the hidden layer
-      if (i != NL){outer_param <- outer_param[-(1:3),, drop = FALSE]}      #remove parameter on upper-layer bias term
+      if (i != NL){outer_param <- outer_param[-(1:ncol(biasVars)),, drop = FALSE]}      #remove parameter on upper-layer bias term
       grad_stubs[[i]] <- activ_prime(MatMult(lay, plist[[i]])) * MatMult(grad_stubs[[i+1]], Matrix::t(outer_param))
     }
     # multiply the gradient stubs by their respective layers to get the actual gradients
