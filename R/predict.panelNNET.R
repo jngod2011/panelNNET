@@ -6,10 +6,10 @@ predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars = NULL, se.fit = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
 # obj = pnn
-# newX = Z[v,]
-# new.param = P[v,]
-# fe.newX = id[v]
-# se.fit = T
+# newX = Xn[te,]
+# new.param = Xp[te,]
+# fe.newX = dat$fips[te]
+# se.fit = F
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -122,7 +122,7 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, n
                   STATS = attr(obj$biasVars, "scaled:scale"), 
                   FUN = '/'))
   } else {
-    B <- rep(1, nrow(D))
+    B <- matrix(rep(1, nrow(D)))
   }
   # compute hidden layers
   HL <- calc_hlayers(parlist = obj$parlist, 
