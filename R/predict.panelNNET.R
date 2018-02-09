@@ -5,11 +5,11 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.biasVars = NULL, se.fit = FALSE
          , numerical_jacobian = FALSE, parallel_jacobian = FALSE, convolutional = NULL){
-# obj = pnn
-# newX = Xn[te,]
-# new.param = Xp[te,]
-# fe.newX = dat$fips[te]
-# se.fit = F
+obj = pnn
+newX = Xn[te,]
+new.param = Xp[te,]
+fe.newX = dat$fips[te]
+se.fit = F
   if (obj$activation == 'tanh'){
     activ <- tanh
   }
@@ -139,9 +139,9 @@ predfun <- function(plist, obj, newX = NULL, fe.newX = NULL, new.param = NULL, n
     return(D)
   }
   if (is.null(obj$fe)){
-    yhat <- D %*% c(plist$beta_param, plist$beta)
+    yhat <- MatMult(as.matrix(D), c(plist$beta_param, plist$beta))
   } else {
-    xpart <- D %*% c(plist$beta_param, plist$beta)
+    xpart <- MatMult(as.matrix(D), c(plist$beta_param, plist$beta))
     nd <- data.frame(fe.newX, xpart = as.numeric(xpart), id = 1:length(fe.newX))       
     nd <- merge(nd, FEs_to_merge, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
