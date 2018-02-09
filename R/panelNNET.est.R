@@ -184,7 +184,8 @@ function(y, X, hidden_units, fe_var, biasVars
     param <- scale(param)
   }
   if (!is.null(biasVars)){
-    biasVars <- cbind(1, scale(biasVars))
+    scaled_biasVars <- scale(biasVars)
+    biasVars <- cbind(1, scaled_biasVars)
   } else {
     biasVars <- matrix(rep(1, nrow(X)))
   }
@@ -556,7 +557,7 @@ function(y, X, hidden_units, fe_var, biasVars
     ))
   fe_output <- data.frame(fe_var, fe)
   }
-  BVout <- if(ncol(biasVars) == 1){NULL} else {biasVars[,-1]}
+  BVout <- if(ncol(biasVars) == 1){NULL} else {scaled_biasVars}
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
     , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
     , X = X, y = y, param = param, fe_var = fe_var, biasVars = BVout, hidden_units = hidden_units, maxit = maxit
