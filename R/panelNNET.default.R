@@ -1,5 +1,5 @@
 panelNNET.default <-
-function(y, X, hidden_units, fe_var, biasVars = NULL, 
+function(y, X, hidden_units, fe_var, biasVars = NULL
   , maxit, lam = 0, time_var = NULL, param = NULL
   , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
   , report_interval = 100
