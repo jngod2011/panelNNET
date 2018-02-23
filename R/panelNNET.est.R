@@ -7,32 +7,32 @@ function(y, X, hidden_units, fe_var, biasVars
          , initialization, dropout_hidden
          , dropout_input, convolutional, LR_slowing_rate, ...){
 
-# y = dat$yield
-# X = Xn
-# hidden_units = c(10, 5)
-# fe_var = dat$fips
-# maxit = 10000
-# lam = .1
-# time_var = dat$year
-# param = Xp
-# verbose = T
-# report_interval = 1
-# gravity = 1.1
-# convtol = 1e-3
-# activation = 'lrelu'
-# start.LR = .0001
-# parlist = NULL
-# OLStrick = TRUE
-# batchsize = 256
-# maxstopcounter = 25
-# parapen = c(0,0)
-# biasVars = NULL
-# 
-# RMSprop = T
-# initialization = "HZRS"
-# dropout_hidden <- dropout_input <- 1
-# convolutional <- NULL
-# LR_slowing_rate <- 2
+y = dat$yield
+X = Xn
+hidden_units = c(10, 5)
+fe_var = dat$fips
+maxit = 10000
+lam = .1
+time_var = dat$year
+param = Xp
+verbose = T
+report_interval = 1
+gravity = 1.1
+convtol = 1e-3
+activation = 'lrelu'
+start.LR = .0001
+parlist = NULL
+OLStrick = TRUE
+batchsize = 256
+maxstopcounter = 25
+parapen = c(0,0)
+biasVars = NULL
+
+RMSprop = T
+initialization = "HZRS"
+dropout_hidden <- dropout_input <- 1
+convolutional <- NULL
+LR_slowing_rate <- 2
 
   
   ##########
